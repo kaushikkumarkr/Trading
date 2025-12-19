@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # The Trading Bot
+  trading_system:
+    build: .
+    container_name: trading_bot
+    restart: always
+    environment:
+      - PAPER_TRADING=true
+      # Secrets passed via env
+      - ALPACA_API_KEY=${ALPACA_API_KEY}
+      - ALPACA_SECRET_KEY=${ALPACA_SECRET_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - HF_TOKEN=${HF_TOKEN}
+      # Supabase Config
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - .:/app
