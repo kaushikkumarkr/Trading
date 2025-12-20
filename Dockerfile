@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 # Copy Requirements
 COPY trading_system/requirements.txt .
 
+# Install CPU-only Torch to reduce image size (GBs saved)
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
 # Install Python Dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
