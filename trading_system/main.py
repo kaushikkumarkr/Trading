@@ -14,10 +14,37 @@ async def main():
     print("🚀 Starting Multi-Agent Trading System...")
     print(f"Tickers: {config.TRADING_TICKERS}")
     
-    # 1. Initialize Graph
-    graph = build_graph()
+    # 1. Initialize Checkpointer (Persistence)
+    checkpointer = None
+    db_url = os.getenv("DATABASE_URL")
     
-    # 2. Start Data Pipeline (Background)
+    # We need to hold the pool reference to keep it alive if using Postgres
+    pool = None 
+    
+    if db_url:
+        try:
+            from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+            from psycopg_pool import AsyncConnectionPool
+            
+            print(f"🔌 Connecting to Database for Persistence...")
+            # Create pool with autocommit for setup() compatibility
+            pool = AsyncConnectionPool(conninfo=db_url, min_size=1, max_size=5, kwargs={"autocommit": True})
+            await pool.open() # Ensure it's ready
+            
+            checkpointer = AsyncPostgresSaver(pool)
+            await checkpointer.setup()
+            print("✅ Persistence Layer (Postgres) Ready.")
+            
+        except Exception as e:
+            print(f"❌ Persistence Error (Falling back to Memory): {e}")
+            if pool: await pool.close()
+            pool = None
+            checkpointer = None
+
+    # 2. Build Graph
+    graph = build_graph(checkpointer=checkpointer)
+    
+    # 3. Start Data Pipeline (Background)
     # asyncio.create_task(data_pipeline.start_stream())
     
     # 3. Trading Loop

@@ -14,7 +14,7 @@ from .agents.news_researcher import news_researcher
 # from langgraph.checkpoint.redis import RedisSaver
 # from .config import config
 
-def build_graph():
+def build_graph(checkpointer=None):
     builder = StateGraph(TradingState)
     
     # 1. Add Nodes
@@ -71,6 +71,8 @@ def build_graph():
     builder.add_edge("executor", END)
     
     # 3. Compile
-    checkpointer = MemorySaver() # For dev/demo
+    if checkpointer is None:
+        from langgraph.checkpoint.memory import MemorySaver
+        checkpointer = MemorySaver() # Default fallback
     
     return builder.compile(checkpointer=checkpointer)

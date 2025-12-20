@@ -18,3 +18,18 @@ services:
       - SUPABASE_KEY=${SUPABASE_KEY}
     volumes:
       - .:/app
+
+  # The Dashboard (Streamlit)
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: trading_dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - ./dashboard:/app/dashboard
+    restart: always

@@ -25,14 +25,78 @@ A professional-grade, self-optimizing multi-agent trading system built with **Py
 
 ```mermaid
 graph TD
-    Market[Market Data] --> Quant[Quant Researcher]
-    News[DuckDuckGo] --> Sentiment[Sentiment Analyst]
-    DB[(Supabase)] <--> Executor
-    Quant --> Strategist
-    Sentiment --> Strategist
-    Strategist --> Risk[Risk Manager]
-    Risk --> Executor[Executor Agent]
-    Executor --> Alpaca[Alpaca API]
+    %% Styling
+    classDef agent fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef brain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef infra fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef external fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+    classDef future fill:#f5f5f5,stroke:#9e9e9e,stroke-width:2px,stroke-dasharray: 5 5;
+
+    %% External Data/APIs
+    subgraph External["🌍 External Ecosystem"]
+        MarketData[("Alpaca / YFinance")]:::external
+        NewsSource[("DuckDuckGo / NewsAPI")]:::external
+        LLMs[("Examples: Gemini 2.0 / Groq")]:::external
+        Discord[("Discord Webhook")]:::external
+    end
+
+    %% Infrastructure & Persistence
+    subgraph Infra["🏗️ Infrastructure"]
+        Supabase[(Supabase PostgreSQL)]:::infra
+        Dashboard["Streamlit Dashboard"]:::infra
+    end
+
+    %% The Brain (LangGraph)
+    subgraph AgentSwarm["🤖 Agent Swarm (LangGraph)"]
+        direction TB
+        
+        %% Entry
+        Start((Start)) --> Supervisor{Supervisor Agent}:::agent
+        
+        %% Analysts Layer (Parallel)
+        Supervisor -->|Route| TechAgent[Technical Analyst]:::agent
+        Supervisor -->|Route| SentAgent[Sentiment Analyst]:::agent
+        Supervisor -->|Route| MacroAgent[Macro Analyst]:::agent
+        Supervisor -->|Route| ResearchAgent[News Researcher]:::agent
+        
+        %% Phase 6 Placeholder
+        Supervisor -.->|Future| MLForecaster[ML Forecaster]:::future
+        
+        %% Reasoning Layer
+        TechAgent --> Strategist
+        SentAgent --> Strategist
+        MacroAgent --> Strategist
+        ResearchAgent --> Strategist
+        MLForecaster -.-> Strategist
+        
+        Strategist[Strategist Agent]:::brain
+        
+        %% Risk & Execution
+        Strategist -->|Signal| RiskAgent[Risk Manager]:::agent
+        RiskAgent -->|Approved| Executor[Executor Agent]:::agent
+        RiskAgent -->|Rejected| End((End))
+        Executor --> End
+    end
+
+    %% Data Flows
+    MarketData --> TechAgent
+    MarketData --> MacroAgent
+    NewsSource --> SentAgent
+    NewsSource --> ResearchAgent
+    
+    Strategist -->|Inference| LLMs
+    ResearchAgent -->|Synthesis| LLMs
+    
+    %% Persistence & Obs
+    AgentSwarm -->|Checkpoints| Supabase
+    AgentSwarm -->|Alerts| Discord
+    Dashboard -->|Read| Supabase
+
+    %% Detailed Connections
+    TechAgent --"RSI, MACD"--> Strategist
+    SentAgent --"FinBERT Score"--> Strategist
+    MacroAgent --"VIX, Sector"--> Strategist
+    ResearchAgent --"Deep Dive Report"--> Strategist
 ```
 
 ## 📦 Installation

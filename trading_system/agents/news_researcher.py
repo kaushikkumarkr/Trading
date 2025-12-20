@@ -1,44 +1,57 @@
-"""
-News Research Agent
-Uses Brave Search + Tavily MCP for deep market research
-"""
-from typing import Dict, Any, List
-from ..mcp.news_client import NewsMCPClient
+from typing import Dict, Any
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from ..utils.llm_client import llm_client
 from ..state import TradingState
 
 class NewsResearcherAgent:
     """
-    Deep research agent using MCP servers
+    Active Research Agent.
+    Uses DuckDuckGo to answer specific market questions.
     """
     
     def __init__(self):
-        self.news_client = NewsMCPClient()
-    
+        self.search = DuckDuckGoSearchRun()
+        self.llm = llm_client.get_model(provider="gemini", temperature=0) # Smart model for synthesis
+        
+        self.prompt = PromptTemplate(
+            template="""You are a deep-dive financial researcher.
+            
+            Task: Research the following ticker and current market situation.
+            
+            Ticker: {ticker}
+            Search Results:
+            {search_results}
+            
+            Question: Wht is driving the price action today? Are there any major catalytic events (Earnings, FDA approvals, Lawsuits, Macro news)?
+            
+            Output: A concise research report (bullet points) summarizing the key drivers. If no news is found, state "No significant news found."
+            """,
+            input_variables=["ticker", "search_results"]
+        )
+
     async def run(self, state: TradingState) -> Dict[str, Any]:
-        """
-        Runs research. 
-        Note: The state object might not have fields for deep research yet, 
-        so we might just append to news_headlines or use a new key.
-        For now, we place it in 'news_headlines' or we'd need to extend State.
-        """
         ticker = state.get("ticker", "SPY")
+        print(f"🕵️‍♂️ NewsResearcher: Searching for info on {ticker}...")
         
-        # 1. Deep Research if event detected
-        # Mock event detection logic
-        # deep_res = await self.news_client.deep_research(f"{ticker} future outlook")
-        
-        # 2. Simple News Search (augmenting Sentiment Analyst)
-        news = await self.news_client.search_news(f"{ticker} stock analysis")
-        
-        headlines = [n["title"] for n in news]
-        
-        # Return allows merging into state
-        # We can append these headlines to existing
-        current_headlines = state.get("news_headlines", [])
-        combined = list(set(current_headlines + headlines))
-        
-        return {
-            "news_headlines": combined
-        }
+        try:
+            # 1. Search Query
+            query = f"{ticker} stock news reason for price move today"
+            results = self.search.invoke(query)
+            
+            # 2. Synthesize with LLM
+            chain = self.prompt | self.llm | StrOutputParser()
+            report = await chain.ainvoke({"ticker": ticker, "search_results": results})
+            
+            return {
+                "research_report": report
+            }
+            
+        except Exception as e:
+            print(f"NewsResearcher Error: {e}")
+            return {
+                "research_report": f"Error fetching news: {e}"
+            }
 
 news_researcher = NewsResearcherAgent()

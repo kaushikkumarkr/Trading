@@ -24,6 +24,7 @@ class TradingState(TypedDict, total=False):
     vix_level: Optional[float]
     vix_regime: str  # "low", "normal", "elevated", "crisis"
     sector_momentum: Optional[float]
+    research_report: Optional[str] # Deep Dive Analysis
     
     # Position & Portfolio
     current_position: dict

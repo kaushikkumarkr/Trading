@@ -1,4 +1,4 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI # Replaced by LLMClient
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
@@ -12,13 +12,13 @@ class TradeDecision(BaseModel):
     confidence: float = Field(description="Confidence score between 0.0 and 1.0")
     reasoning: str = Field(description="Detailed reasoning for the decision")
 
+from ..utils.llm_client import llm_client
+
 class Strategist:
     def __init__(self):
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash-exp", # Using the latest flash model
-            google_api_key=config.GOOGLE_API_KEY,
-            temperature=0
-        )
+        # Default to Gemini (Smartest) if not specified
+        # In a real evolution, this could be passed via config
+        self.llm = llm_client.get_model(provider="gemini", temperature=0)
         self.parser = PydanticOutputParser(pydantic_object=TradeDecision)
         
         self.prompt = PromptTemplate(
@@ -36,6 +36,9 @@ Technical Analysis (Score: {technical_score}):
 Sentiment Analysis (Score: {sentiment_score}):
 Top Headlines: {headlines}
 
+News Research Report:
+{research_report}
+
 Decision Rules:
 - STRONG_BUY: Technical > 0.5, Sentiment > 0.3, VIX < 25
 - BUY: Technical > 0.2, Sentiment > 0, Favorable Sector
@@ -47,7 +50,7 @@ Provide a JSON decision with action, confidence (0-1), and reasoning.
 {format_instructions}
 """,
             input_variables=["ticker", "price", "vix_regime", "vix_level", "sector_momentum", 
-                           "technical_score", "technical_signals", "sentiment_score", "headlines"],
+                           "technical_score", "technical_signals", "sentiment_score", "headlines", "research_report"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
 
@@ -63,7 +66,8 @@ Provide a JSON decision with action, confidence (0-1), and reasoning.
                 "technical_score": state.get("technical_score", 0.0),
                 "technical_signals": str(state.get("technical_signals", {})),
                 "sentiment_score": state.get("aggregated_sentiment", 0.0),
-                "headlines": str(state.get("news_headlines", [])[:3])
+                "headlines": str(state.get("news_headlines", [])[:3]),
+                "research_report": state.get("research_report", "No special research requested.")
             }
             
             # Generate Decision
