@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    - cron: '*/30 * * * *' # Run every 30 minutes (Option A)
+    - cron: '*/15 13-21 * * 1-5' # Run every 15 mins, Mon-Fri (Approx 8am-4pm ET)
 
 jobs:
   test:
