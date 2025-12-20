@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r trading_system/requirements.txt
     - name: Run Verification Tests
       env:
         ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
@@ -60,7 +60,7 @@ jobs:
       with:
         python-version: "3.11"
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run: pip install -r trading_system/requirements.txt
     - name: Execute Trading Cycle (Once)
       env:
         ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}

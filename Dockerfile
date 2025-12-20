@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 # Copy Requirements
-COPY requirements.txt .
+COPY trading_system/requirements.txt .
 
 # Install Python Dependencies
 RUN pip install --no-cache-dir -r requirements.txt
