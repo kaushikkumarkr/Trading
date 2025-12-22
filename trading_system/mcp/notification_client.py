@@ -33,7 +33,8 @@ class NotificationMCPClient:
     ) -> None:
         """Send trade execution alert"""
         emoji = "🟢" if action == "BUY" else "🔴"
-        message = f"{emoji} **TRADE EXECUTED**\n**{action}** {quantity} {symbol} @ ${price:.2f}\n*Why:* {reason} ({confidence*100:.1f}%)"
+        price_str = f"${price:.2f}" if price is not None else "Pending/Error"
+        message = f"{emoji} **TRADE EXECUTED**\n**{action}** {quantity} {symbol} @ {price_str}\n*Why:* {reason} ({confidence*100:.1f}%)"
         await self._send_to_all(message, AlertLevel.SUCCESS if action == "BUY" else AlertLevel.WARNING)
     
     async def send_risk_alert(
