@@ -1,14 +1,15 @@
 import asyncio
 from dotenv import load_dotenv
 import os
+
+# Load env immediately before other imports
+load_dotenv()
+
 from trading_system.config import config
 from trading_system.graph import build_graph
 from trading_system.utils.data_pipeline import data_pipeline
 from trading_system.utils.circuit_breaker import circuit_breaker
 from datetime import datetime
-
-# Load env
-load_dotenv()
 
 async def main():
     print("🚀 Starting Multi-Agent Trading System...")
